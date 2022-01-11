@@ -82,18 +82,16 @@ class MLP(object):
     # in main().
     def __init__(self, n_classes, n_features, hidden_size=1):
         # Initialize an MLP with a single hidden layer.
-        units = [64, 50, 10]
-
-        # Initialize all weights and biases randomly.
-        W1 = .1 * np.random.randn(units[1], units[0])
-        b1 = .1 * np.random.randn(units[1])
-        W2 = .1 * np.random.randn(units[2], units[1])
-        b2 = .1 * np.random.randn(units[2])
+        self.learning_rate = 0.001
+        W1 = np.random.normal(0.1, 0.01, size=(200, n_features))
+        B1 = np.zeros(200)
+        W2 = np.random.normal(0.1, 0.01, size=(n_classes,1))
+        B2 =  np.zeros(200)
+        self.learning_rateB2 = np.zeros(n_classes)
         self.W = [W1, W2]
-        self.B = [b1, b2]
+        self.B = [B1, B2]
         self.hiddenLayer = hidden_size
-        print(self.W)
-        print(self.B)
+        
        
         #raise NotImplementedError
    
