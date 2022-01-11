@@ -108,8 +108,8 @@ class NeuralRegression(_RegressionModel):
         """
         self.b1 = 0
         self.b2 = 0
-        self.w1 = np.random.normal(0.1,0.1*0.1,(150*n_features)) 
-        self.w2 = np.random.normal(0.1,0.1*0.1,(150*1)) 
+        self.w1 = np.random.normal(0.1,0.1*0.1,(150,n_features)) 
+        self.w2 = np.random.normal(0.1,0.1*0.1,(150)) 
 
         
         #raise NotImplementedError
@@ -122,10 +122,10 @@ class NeuralRegression(_RegressionModel):
         """
 
         def ReLu(val):
-            return max(0.0,val)
+            return np.maximum(0.0, val)
 
         #hidden layer
-        z1 = x_i.dot(self.w1)# input from layer 1
+        z1 = self.w1.dot(x_i)# input from layer 1
         a1 = ReLu(z1)# output of layer 2
 
         # Output layer
