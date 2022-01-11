@@ -75,8 +75,6 @@ class LinearRegression(_RegressionModel):
         This function makes an update to the model weights (in other words,
         self.w).
         """
-        #Y_pred = self.predict( self.X )
-        #np.linalg.inv(X.T.dot(X)).dot(X.transpose()).dot(y)
         y_pred = self.predict(x_i)
         loss = y_i - y_pred
         dW = - ( 2 * x_i * loss )
@@ -84,11 +82,6 @@ class LinearRegression(_RegressionModel):
 
         self.w = self.w - learning_rate * dW
         self.b = self.b - learning_rate * db
-
-
-
-        #self.w = np.linalg.inv(x_i.T * x_i) * (x_i.T) * (y_i)
-        # print(self.w)
 
         #raise NotImplementedError
 
@@ -122,12 +115,22 @@ class NeuralRegression(_RegressionModel):
         """
         #MSE = np.square(np.subtract(Y_true,Y_pred)).mean()
 
-        z = self.predict(x_i)
-        dz = z - y_i
-        dw = dz.dot(x_i.transpose())
-        db = dz
+        def ReLu(val):
+            return max(0.0,val)
 
-        a2 = np.square(np.subtract(z, y_i))  # output of out layer
+
+        z1 = x_i.dot(self.w1)# input from layer 1
+        a1 = ReLu(z1)# output of layer 2
+
+        z2 = x_i.dot(self.w2)# input of out layer
+        a2 = np.square(np.subtract(z2, y_i))  # output of out layer
+        
+
+        #z = self.predict(x_i)
+        #dz = z - y_i
+        #dw = dz.dot(x_i.transpose())
+        #db = dz
+
 
         d2 =(a2-y_i)
         d1 = np.multiply((self.w2.dot((d2.transpose()))).transpose(),
@@ -141,8 +144,7 @@ class NeuralRegression(_RegressionModel):
         self.w1 = self.w1-(learning_rate*(w1_adj))
         self.w2 = self.w2-(learning_rate*(w2_adj))                           
  
-        
-
+    
         #raise NotImplementedError
 
     def predict(self, X):
@@ -169,8 +171,6 @@ class NeuralRegression(_RegressionModel):
         a2 = z2  # output of out layer
 
         return(a2)
-
-
         #raise NotImplementedError
 
 
