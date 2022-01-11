@@ -106,7 +106,13 @@ class NeuralRegression(_RegressionModel):
         regression model (for example, there will probably be one weight
         matrix per layer of the model).
         """
-        raise NotImplementedError
+        self.b1 = 0
+        self.b2 = 0
+        self.w1 = np.random.normal(0.1,0.1*0.1,(150*n_features)) 
+        self.w2 = np.random.normal(0.1,0.1*0.1,(150*1)) 
+
+        
+        #raise NotImplementedError
 
     def update_weight(self, x_i, y_i, learning_rate=0.001):
         """
@@ -114,9 +120,33 @@ class NeuralRegression(_RegressionModel):
 
         This function makes an update to the model weights
         """
+
+        def ReLu(val):
+            return max(0.0,val)
+
+        #hidden layer
+        z1 = x_i.dot(self.w1)# input from layer 1
+        a1 = ReLu(z1)# output of layer 2
+
+        # Output layer
+        z2 = a1.dot(self.w2)# input of out layer
+        a2 = ReLu(z2)# output of out layer
+
+        d2 =(a2-y_i)
+        d1 = np.multiply((self.w2.dot((d2.transpose()))).transpose(),
+                                   (np.multiply(a1, 1-a1)))
+
+        # Gradient for w1 and w2
+        w1_adj = x_i.transpose().dot(d1)
+        w2_adj = a1.transpose().dot(d2)
+     
+        # Updating parameters
+        self.w1 = self.w1-(learning_rate*(w1_adj))
+        self.w2 = self.w2-(learning_rate*(w2_adj))                           
+ 
         
 
-        raise NotImplementedError
+        #raise NotImplementedError
 
     def predict(self, X):
         """
@@ -130,7 +160,21 @@ class NeuralRegression(_RegressionModel):
         update_weight because it returns only the final output of the network,
         not any of the intermediate values needed to do backpropagation.
         """
-        raise NotImplementedError
+        def ReLu(val):
+            return max(0.0,val)
+
+        # hidden
+        z1 = X.dot(self.w1) + self.b1 # input from layer 1
+        a1 = ReLu(z1)# out put of layer 2
+     
+        # Output layer
+        z2 = a1.dot(self.w2) + self.b2 # input of out layer
+        a2 = ReLu(z2)# output of out layer
+
+        return(a2)
+
+
+        #raise NotImplementedError
 
 
 def plot(epochs, train_loss, test_loss):
