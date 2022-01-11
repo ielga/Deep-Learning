@@ -99,13 +99,13 @@ class NeuralRegression(_RegressionModel):
         regression model (for example, there will probably be one weight
         matrix per layer of the model).
         """
-        self.b1 = 0
+        self.b1 = np.zeros((hidden))
         self.b2 = 0
-        self.w1 = np.random.normal(0.1,0.1*0.1,(150,n_features)) 
-        self.w2 = np.random.normal(0.1,0.1*0.1,(150)) 
-
-        
-        #raise NotImplementedError
+        self.w1 = np.random.normal(0.1, 0.1**2, (hidden, n_features)) 
+        self.w2 = np.random.normal(0.1, 0.1**2, (hidden)) 
+    
+    def relu(self, x):
+        return np.maximum(0.0, x)
 
     def update_weight(self, x_i, y_i, learning_rate=0.001):
         """
@@ -113,39 +113,29 @@ class NeuralRegression(_RegressionModel):
 
         This function makes an update to the model weights
         """
-        #MSE = np.square(np.subtract(Y_true,Y_pred)).mean()
-
-        def ReLu(val):
-            return max(0.0,val)
-
-
-        z1 = x_i.dot(self.w1)# input from layer 1
-        a1 = ReLu(z1)# output of layer 2
-
-        z2 = x_i.dot(self.w2)# input of out layer
-        a2 = np.square(np.subtract(z2, y_i))  # output of out layer
-        
-
-        #z = self.predict(x_i)
-        #dz = z - y_i
-        #dw = dz.dot(x_i.transpose())
-        #db = dz
-
-
-        d2 =(a2-y_i)
-        d1 = np.multiply((self.w2.dot((d2.transpose()))).transpose(),
-                                   (np.multiply(a1, 1-a1)))
-
-        # Gradient for w1 and w2
-        w1_adj = x_i.transpose().dot(d1)
-        w2_adj = a1.transpose().dot(d2)
-     
-        # Updating parameters
-        self.w1 = self.w1-(learning_rate*(w1_adj))
-        self.w2 = self.w2-(learning_rate*(w2_adj))                           
- 
+        z1 = self.w1.dot(x_i) + self.b1 # hidden layer pre-activation
+        h1 = self.relu(z1)              # hidden layer activation
+        z2 = self.w2.dot(h1) + self.b2  # output layer pre-activation
+        y_pred = z2                     # output layer activation
     
-        #raise NotImplementedError
+        # calculate gradients
+        d_z2 = y_pred - y_i
+
+        d_w2 = d_z2 * h1.T
+        d_b2 = d_z2
+        d_h1 = (self.w2.T).dot(d_z2)
+
+        d_z1 = np.multiply(d_h1, np.sign(z1))
+
+        # d_w1 = d_z1.dot(x_i.transpose())
+        d_w1 = d_z1.reshape(-1, 1).dot(x_i.reshape(-1, 1).T)
+        d_b1 = d_z1
+     
+        # update parameters
+        self.w1 = self.w1 - learning_rate * d_w1
+        self.b1 = self.b1 - learning_rate * d_b1
+        self.w2 = self.w2 - learning_rate * d_w2
+        self.b2 = self.b2 - learning_rate * d_b2
 
     def predict(self, X):
         """
@@ -159,19 +149,16 @@ class NeuralRegression(_RegressionModel):
         update_weight because it returns only the final output of the network,
         not any of the intermediate values needed to do backpropagation.
         """
-        def ReLu(val):
-            return max(0.0,val)
+        y_pred = []
+        for x in X:
+            z1 = self.w1.dot(x) + self.b1   # hidden layer pre-activation
+            h1 = self.relu(z1)              # hidden layer activation
+            z2 = self.w2.dot(h1) + self.b2  # output layer pre-activation
+            o = z2                          # output layer activation
 
-        # hidden
-        z1 = X.dot(self.w1) + self.b1 # input from layer 1
-        a1 = ReLu(z1)# out put of layer 2
-     
-        # Output layer
-        z2 = a1.dot(self.w2) + self.b2 # input of out layer
-        a2 = z2  # output of out layer
+            y_pred.append(o)
 
-        return(a2)
-        #raise NotImplementedError
+        return np.array(y_pred)
 
 
 def plot(epochs, train_loss, test_loss):
