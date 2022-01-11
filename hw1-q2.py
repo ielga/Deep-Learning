@@ -122,17 +122,12 @@ class NeuralRegression(_RegressionModel):
         """
         #MSE = np.square(np.subtract(Y_true,Y_pred)).mean()
 
-        def ReLu(val):
-            return np.maximum(0.0, val)
+        z = self.predict(x_i)
+        dz = z - y_i
+        dw = dz.dot(x_i.transpose())
+        db = dz
 
-        #hidden layer
-        z1 = self.w1.dot(x_i)# input from layer 1
-        a1 = ReLu(z1)# output of layer 2
-
-        # Output layer
-        z2 = a1.dot(self.w2)# input of out layer
-        z3 = predict(self,z2)
-        a2 = np.square(np.subtract(z2,z3))  # output of out layer
+        a2 = np.square(np.subtract(z, y_i))  # output of out layer
 
         d2 =(a2-y_i)
         d1 = np.multiply((self.w2.dot((d2.transpose()))).transpose(),
