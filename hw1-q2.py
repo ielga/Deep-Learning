@@ -120,6 +120,7 @@ class NeuralRegression(_RegressionModel):
 
         This function makes an update to the model weights
         """
+        #MSE = np.square(np.subtract(Y_true,Y_pred)).mean()
 
         def ReLu(val):
             return np.maximum(0.0, val)
@@ -130,7 +131,8 @@ class NeuralRegression(_RegressionModel):
 
         # Output layer
         z2 = a1.dot(self.w2)# input of out layer
-        a2 = ReLu(z2)# output of out layer
+        z3 = predict(self,z2)
+        a2 = np.square(np.subtract(z2,z3))  # output of out layer
 
         d2 =(a2-y_i)
         d1 = np.multiply((self.w2.dot((d2.transpose()))).transpose(),
@@ -169,7 +171,7 @@ class NeuralRegression(_RegressionModel):
      
         # Output layer
         z2 = a1.dot(self.w2) + self.b2 # input of out layer
-        a2 = ReLu(z2)# output of out layer
+        a2 = z2  # output of out layer
 
         return(a2)
 
