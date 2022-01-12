@@ -57,8 +57,7 @@ class Perceptron(LinearModel):
         if yhat != y_i:
              self.W[y_i] +=  x_i 
              self.W[yhat] -= x_i
-        # Q3.1a
-        #raise NotImplementedError
+      
 
 
 class LogisticRegression(LinearModel):
@@ -82,48 +81,46 @@ class MLP(object):
     # in main().
     def __init__(self, n_classes, n_features, hidden_size=1):
         # Initialize an MLP with a single hidden layer.
-        self.learning_rate = 0.001
-        W1 = np.random.normal(0.1, 0.01, size=(200, n_features))
-        B1 = np.zeros(200)
-        W2 = np.random.normal(0.1, 0.01, size=(n_classes,1))
-        B2 =  np.zeros(200)
-        self.learning_rateB2 = np.zeros(n_classes)
-        self.W = [W1, W2]
-        self.B = [B1, B2]
-        self.hiddenLayer = hidden_size
         
-       
-        #raise NotImplementedError
-   
+        self.W1 = np.random.normal(0.1, 0.01, size=(n_features, 200)) # weight for hidden layer
+        self.B1 = np.zeros((1, 200)) # bias for hidden layer
+        self.W2 = np.random.normal(0.1, 0.01, size=(n_classes, 1)) #weight for output layer
+        self.B2 = np.zeros(( 1, 1)) #bias for output layer
+        print(self.W1.shape)
+        print(self.W2.shape)
+        print(self.B1.shape)
+        print(self.B2.shape)
+
+        #self.W = [W1, W2]
+        #self.B = [B1, B2]
+        #self.num_layers = len(self.W)
+        #self.hiddenLayer = hidden_size
+
+    def sigmoid (self, x):
+        return 1/(1 + np.exp(-x))
+
+    # derivative of Sigmoid Function
+    def derivatives_sigmoid(self, x):
+        return x * (1 - x)
+
+    def relu (self, x, der=False):
+    
+        if (der == True): # the derivative of the ReLU is the Heaviside Theta
+            f = np.heaviside(x, 1)
+        else :
+            f = np.maximum(x, 0)
+    
+        return f
     def predict(self, X):
         # Compute the forward pass of the network. At prediction time, there is
         # no need to save the values of hidden nodes, whereas this is required
         # at training time.
-
-        predicted_y = []
-        g = np.tanh #put a relu function
-        nm_layers = len(self.W)
-        hiddens = []
-        for x in X:
-        #compute forward
-            print(x)
-            for i in range(nm_layers):
-                h = x if i == 0 else hiddens[i-1]
-                print(self.W[i])
-                print(h)
-                z = self.W[i].dot(h) + self.B[i]
-                if i < nm_layers-1:  # Assume the output layer has no activation.
-                    hiddens.append(np.maximum(z, 0))
-            output = z
-        #finished forward
-            yhat =  np.zeros_like(output)
-            yhat[np.argmax(output)] = 1
-            predicted_y.append(yhat)
-        predicted_y = np.array(predicted_y)
-        return predicted_y
-        #raise NotImplementedError
-
-
+        houtput = np.dot(X, self.W1 ) + self.B1
+        output1 = self.relu(houtput, False)
+        Ooutput = np.dot(output1, self.W2) + self.B2
+        output2 = self.sigmoid(Ooutput)
+        return output2
+   
     def evaluate(self, X, y):
         """
         X (n_examples x n_features)
@@ -137,51 +134,37 @@ class MLP(object):
         return n_correct / n_possible
 
     def train_epoch(self, X, y, learning_rate=0.001):
-        total_loss = 0
-        hiddens = []
-        grad_weights = []
-        grad_biases = []
-        nm_layers = len(self.W)
-        g = np.tanh
-        for x, y in zip(X, y):
-            #forward
-            for i in range(nm_layers):
-                h = X if i == 0 else hiddens[i-1]
-                z = self.W[i] * (h) + self.B[i]
-                if i < nm_layers-1:  # Assume the output layer has no activation.
-                    hiddens.append(g(z))
-            output = z
-            #compute loss using cross_entropy
-            probs = np.exp(output) / np.sum(np.exp(output))
-            loss = -y.dot(np.log(probs))
-            total_loss += loss
 
-            #compute backward propagation
-            z = output
-            grad_z = probs - y  # Grad of loss wrt last z.
+        print("fazer forward")
+        print(y.shape)
+        hinput= np.dot(X,self.W1) + self.B1
+        hiddenlayer_activations = self.sigmoid(hinput)
+        oinput=np.dot(hiddenlayer_activations,self.W2) + self.B2
+        output = self.sigmoid(oinput)
+        print(output)
+        print("forward feito")
 
-            for i in range(nm_layers-1, -1, -1):
-                # Gradient of hidden parameters.
-                h = x if i == 0 else hiddens[i-1]
-                grad_weights.append(grad_z[:, None].dot(h[:, None].T))
-                grad_biases.append(grad_z)
+        #Backpropagation
+        probs = np.exp(output) / np.sum(np.exp(output))
+        error = -y.dot(np.log(probs))
+        
+        #error = y-output
+        print("calculei erro")
+        grad_output_layer = self.derivatives_sigmoid(output)
+        grad_hidden_layer = self.derivatives_sigmoid(hiddenlayer_activations)
+        print("passei1")
+        d_output = error * grad_output_layer
+        print("passei2")
+        error_hidden_layer = d_output.dot(self.W2.T)
+        print("passei3")
+        d_hiddenlayer = error_hidden_layer * grad_hidden_layer
 
-                # Gradient of hidden layer below.
-                grad_h = self.W[i].T.dot(grad_z)
-
-                # Gradient of hidden layer below before activation.
-                assert(g == np.tanh)
-                grad_z = grad_h * (1-h**2)   # Grad of loss wrt z3.
-
-                grad_weights.reverse()
-                grad_biases.reverse()
-
-            #updating parameters
-            for i in range(nm_layers):
-                self.W[i] -= learning_rate*grad_weights[i]
-                self.B[i] -= learning_rate*grad_biases[i]
-                
-
+        print("vou atualizar")
+        self.W2 += hiddenlayer_activations.T.dot(d_output) *learning_rate
+        self.B2 += np.sum(d_output, axis=0,keepdims=True) *learning_rate
+        self.W1 += X.T.dot(d_hiddenlayer) *learning_rate
+        self.B1 += np.sum(d_hiddenlayer, axis=0,keepdims=True) *learning_rate
+        print("update done")
 
 def plot(epochs, valid_accs, test_accs):
     plt.xlabel('Epoch')
