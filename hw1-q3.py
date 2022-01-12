@@ -84,12 +84,9 @@ class MLP(object):
         
         self.W1 = np.random.normal(0.1, 0.01, size=(n_features, 200)) # weight for hidden layer
         self.B1 = np.zeros((1, 200)) # bias for hidden layer
-        self.W2 = np.random.normal(0.1, 0.01, size=(n_classes, 1)) #weight for output layer
+        self.W2 = np.random.normal(0.1, 0.01, size=(200, 1)) #weight for output layer
         self.B2 = np.zeros(( 1, 1)) #bias for output layer
-        print(self.W1.shape)
-        print(self.W2.shape)
-        print(self.B1.shape)
-        print(self.B2.shape)
+       
 
         #self.W = [W1, W2]
         #self.B = [B1, B2]
@@ -133,38 +130,34 @@ class MLP(object):
         n_possible = y.shape[0]
         return n_correct / n_possible
 
-    def train_epoch(self, X, y, learning_rate=0.001):
+    def train_epoch(self, X, y, learning_rate = 0.001):
 
-        print("fazer forward")
-        print(y.shape)
         hinput= np.dot(X,self.W1) + self.B1
         hiddenlayer_activations = self.sigmoid(hinput)
         oinput=np.dot(hiddenlayer_activations,self.W2) + self.B2
         output = self.sigmoid(oinput)
-        print(output)
-        print("forward feito")
-
+        
         #Backpropagation
-        probs = np.exp(output) / np.sum(np.exp(output))
+        probs = np.exp(output.T[0]) / np.sum(np.exp(output.T[0]))
         error = -y.dot(np.log(probs))
         
-        #error = y-output
-        print("calculei erro")
+        
         grad_output_layer = self.derivatives_sigmoid(output)
         grad_hidden_layer = self.derivatives_sigmoid(hiddenlayer_activations)
-        print("passei1")
-        d_output = error * grad_output_layer
-        print("passei2")
-        error_hidden_layer = d_output.dot(self.W2.T)
-        print("passei3")
-        d_hiddenlayer = error_hidden_layer * grad_hidden_layer
+        
+        output = error * grad_output_layer
+        
+        error_hidden_layer = output.dot(self.W2.T)
+        
+        hiddenlayer = error_hidden_layer * grad_hidden_layer
 
-        print("vou atualizar")
-        self.W2 += hiddenlayer_activations.T.dot(d_output) *learning_rate
-        self.B2 += np.sum(d_output, axis=0,keepdims=True) *learning_rate
-        self.W1 += X.T.dot(d_hiddenlayer) *learning_rate
-        self.B1 += np.sum(d_hiddenlayer, axis=0,keepdims=True) *learning_rate
-        print("update done")
+        
+        
+        self.W1 -= X.T.dot(hiddenlayer) *learning_rate
+        self.B1 += np.sum(hiddenlayer, axis=0,keepdims=True) *learning_rate
+        self.W2 -= hiddenlayer_activations.T.dot(output) *learning_rate
+        self.B2 += np.sum(output, axis=0,keepdims=True) *learning_rate
+        
 
 def plot(epochs, valid_accs, test_accs):
     plt.xlabel('Epoch')
@@ -174,7 +167,6 @@ def plot(epochs, valid_accs, test_accs):
     plt.plot(epochs, test_accs, label='test')
     plt.legend()
     plt.show()
-    plt.savefig("epochs.png")
 
 
 def main():
