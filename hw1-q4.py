@@ -99,11 +99,6 @@ class FeedforwardNetwork(nn.Module):
 
         
         return output
-        
-
-
-
-        #raise NotImplementedError
 
 
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
@@ -125,30 +120,14 @@ def train_batch(X, y, model, optimizer, criterion, **kwargs):
     loss as a numerical value that is not part of the computation graph.
     """
 
-    #Not using kwargs??
+    optimizer.zero_grad() # sets the gradients "to zero".
+    y_ = model(X)
+    loss = criterion(y_, y)
+    
+    loss.backward() # computes the gradients.
+    optimizer.step() # updates weights using the gradients.
 
-    n_examples,n_features = X.shape()
-    model = LogisticRegression(n_examples,n_features)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-    criterion = nn.MSELoss()
-
-    model.train()  
-    loss_history = []
-    for y_ in range(20):
-        optimizer.zero_grad() # sets the gradients "to zero".
-
-        y_ = model(X)
-        loss = criterion(y_, y)
-        
-        loss_history.append(loss.item())
-
-        loss.backward() # computes the gradients.
-        optimizer.step() # updates weights using the gradients.
-
-    return loss_history
-
-
-    #raise NotImplementedError
+    return loss.item()
 
 
 def predict(model, X):
