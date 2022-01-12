@@ -47,7 +47,9 @@ class LogisticRegression(nn.Module):
         forward pass -- this is enough for it to figure out how to do the
         backward pass.
         """
-        raise NotImplementedError
+
+        return self.layer(x)
+        #raise NotImplementedError
 
 
 # Q3.2
@@ -68,6 +70,14 @@ class FeedforwardNetwork(nn.Module):
         includes modules for several activation functions and dropout as well.
         """
         super().__init__()
+        self.hidden_size = hidden_size
+        self.fc1 = torch.nn.Linear(n_features, hidden_size)
+        self.relu = torch.nn.ReLU()
+        self.fc2 = torch.nn.Linear(self.hidden_size, 1)
+        self.tahn = nn.Tanh()
+        self.dropout = nn.Dropout(0.3)
+        self.layers = layers 
+
         # Implement me!
 
     def forward(self, x, **kwargs):
@@ -78,7 +88,22 @@ class FeedforwardNetwork(nn.Module):
         the output logits from x. This will include using various hidden
         layers, pointwise nonlinear functions, and dropout.
         """
-        raise NotImplementedError
+        x = self.dropout(x)
+        hidden = self.fc1(x)
+        relu = self.relu(hidden)
+       
+
+        output = self.fc2(relu)
+        output = self.dropout(output)
+        output = self.tahn(output)
+
+        
+        return output
+        
+
+
+
+        #raise NotImplementedError
 
 
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
@@ -99,7 +124,31 @@ def train_batch(X, y, model, optimizer, criterion, **kwargs):
     This function should return the loss (tip: call loss.item()) to get the
     loss as a numerical value that is not part of the computation graph.
     """
-    raise NotImplementedError
+
+    #Not using kwargs??
+
+    n_examples,n_features = X.shape()
+    model = LogisticRegression(n_examples,n_features)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+    criterion = nn.MSELoss()
+
+    model.train()  
+    loss_history = []
+    for y_ in range(20):
+        optimizer.zero_grad() # sets the gradients "to zero".
+
+        y_ = model(X)
+        loss = criterion(y_, y)
+        
+        loss_history.append(loss.item())
+
+        loss.backward() # computes the gradients.
+        optimizer.step() # updates weights using the gradients.
+
+    return loss_history
+
+
+    #raise NotImplementedError
 
 
 def predict(model, X):
